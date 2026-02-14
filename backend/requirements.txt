@@ -1,0 +1,12 @@
+fastapi
+uvicorn[standard]
+python-multipart
+python-docx
+anthropic
+google-cloud-firestore
+firebase-admin
+yfinance
+fredapi
+feedparser
+pydantic-settings
+pandas
