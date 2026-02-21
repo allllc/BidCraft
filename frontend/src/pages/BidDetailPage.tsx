@@ -272,7 +272,7 @@ export default function BidDetailPage() {
 
       {/* Summary Cards (when analysis exists) */}
       {analysis && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
           <div className="bg-white rounded-xl border border-gray-200 p-4">
             <span className="text-sm text-gray-500">Total Estimate</span>
             <p className="text-xl font-bold text-gray-900">
@@ -301,6 +301,73 @@ export default function BidDetailPage() {
               })()}
             </p>
           </div>
+          <div className={`rounded-xl border p-4 ${
+            analysis.judge_validation
+              ? analysis.judge_validation.passed
+                ? "bg-green-50 border-green-200"
+                : "bg-red-50 border-red-200"
+              : "bg-white border-gray-200"
+          }`}>
+            <span className="text-sm text-gray-500">AI Judge</span>
+            {analysis.judge_validation ? (
+              <div className="flex items-center gap-2">
+                <p className={`text-xl font-bold ${
+                  analysis.judge_validation.overall_score >= 90 ? "text-green-600" :
+                  analysis.judge_validation.overall_score >= 70 ? "text-yellow-600" :
+                  "text-red-600"
+                }`}>
+                  {analysis.judge_validation.overall_score}/100
+                </p>
+                <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${
+                  analysis.judge_validation.passed ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                }`}>
+                  {analysis.judge_validation.passed ? "Passed" : "Review"}
+                </span>
+              </div>
+            ) : (
+              <p className="text-xl font-bold text-gray-400">N/A</p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Judge Validation Banner */}
+      {analysis?.judge_validation && (
+        <div className={`rounded-xl border p-4 mb-6 ${
+          analysis.judge_validation.passed ? "bg-green-50 border-green-200" : "bg-amber-50 border-amber-200"
+        }`}>
+          <div className="flex items-start justify-between">
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <h4 className="font-semibold text-sm">
+                  Llama 4 Maverick Validation
+                </h4>
+                <span className={`text-xs px-2 py-0.5 rounded font-medium ${
+                  analysis.judge_validation.passed ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
+                }`}>
+                  Score: {analysis.judge_validation.overall_score}/100
+                </span>
+              </div>
+              <p className="text-sm text-gray-700">{analysis.judge_validation.summary}</p>
+            </div>
+          </div>
+          {(analysis.judge_validation.issues || []).length > 0 && (
+            <div className="mt-3 space-y-2">
+              {analysis.judge_validation.issues.map((issue: any, i: number) => (
+                <div key={i} className={`flex items-start gap-2 text-sm rounded-lg px-3 py-2 ${
+                  issue.severity === "error" ? "bg-red-100 text-red-800" :
+                  issue.severity === "warning" ? "bg-yellow-100 text-yellow-800" :
+                  "bg-blue-50 text-blue-800"
+                }`}>
+                  <span className="font-medium shrink-0">
+                    {issue.severity === "error" ? "Error" : issue.severity === "warning" ? "Warning" : "Info"}
+                  </span>
+                  <span className="text-xs bg-white/60 px-1.5 py-0.5 rounded shrink-0">{issue.step}</span>
+                  <span>{issue.finding}</span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
@@ -586,7 +653,18 @@ function ScopeTab({ analysis }: { analysis: any }) {
   return (
     <div className="space-y-6">
       <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h3 className="font-semibold text-lg mb-2">Scope Summary</h3>
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="font-semibold text-lg">Scope Summary</h3>
+          {ext.confidence_level && (
+            <span className={`px-2.5 py-1 rounded text-xs font-medium ${
+              ext.confidence_level === "high" ? "bg-green-100 text-green-700" :
+              ext.confidence_level === "medium" ? "bg-yellow-100 text-yellow-700" :
+              "bg-red-100 text-red-700"
+            }`}>
+              Extraction Confidence: {ext.confidence_level}
+            </span>
+          )}
+        </div>
         <p className="text-gray-700">{ext.summary || "No summary available"}</p>
       </div>
       <div className="grid gap-4">

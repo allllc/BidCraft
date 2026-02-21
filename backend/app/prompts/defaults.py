@@ -30,6 +30,7 @@ Return a JSON object with:
   - "question": The specific clarifying question
   - "context": Why this question matters
   - "priority": "high", "medium", or "low"
+- "confidence_level": "low", "medium", or "high" — your confidence in the completeness and accuracy of the extraction. "high" if the document is detailed with clear specs; "medium" if some sections are vague or missing; "low" if the document is sparse or ambiguous
 - "schedule": An array of objects representing the construction schedule, each with:
   - "activity": Name of the construction activity or task
   - "trade": The trade or discipline responsible (e.g., "Concrete", "Electrical", "Plumbing")
@@ -186,6 +187,64 @@ Write in a professional, concise tone. No JSON required for this prompt.""",
         "variables": ["commodity_data", "rate_data", "news_headlines"],
         "model": "claude-sonnet-4-20250514",
         "max_tokens": 1500,
+        "version": 1,
+        "is_default": True,
+    },
+    {
+        "slug": "judge_validation",
+        "name": "AI Judge Validation",
+        "description": "Cross-validates the full AI analysis using a separate LLM (Llama 4 Maverick) to detect hallucinations, pricing errors, and contradictions",
+        "category": "judge_validation",
+        "template_text": """You are an independent quality assurance reviewer for construction bid analysis. A different AI system has analyzed a bid document and produced three outputs. Your job is to validate the analysis by checking for errors, hallucinations, and contradictions.
+
+ORIGINAL BID DOCUMENT (excerpt):
+{raw_text}
+
+=== AI ANALYSIS OUTPUT TO VALIDATE ===
+
+STEP 1 — BID EXTRACTION (scope, divisions, risks, schedule):
+{bid_extraction}
+
+STEP 2 — MATERIAL PROCUREMENT (cost estimate, material orders, timeline):
+{material_procurement}
+
+STEP 3 — SUBCONTRACTOR SCHEDULING (required trades, matches, conflicts):
+{sub_scheduling}
+
+=== YOUR VALIDATION TASK ===
+
+Check for the following issues:
+
+1. HALLUCINATED SCOPE: Are there divisions, materials, or trades in the analysis that are NOT supported by the original bid document text? Flag any items the AI may have invented.
+
+2. PRICING PLAUSIBILITY: Are unit costs and totals within reasonable ranges for commercial construction? Flag any obviously wrong numbers (e.g., $1/sqft for concrete, $1M for paint).
+
+3. SCHEDULE CONSISTENCY: Do task dependencies make sense? Are durations realistic for the scope described? Does the mobilization sequence follow standard construction logic?
+
+4. CROSS-STEP CONTRADICTIONS: Does the material procurement timeline align with the construction schedule? Do the trades in sub_scheduling match the trades in the schedule? Are there conflicts between steps?
+
+5. SUBCONTRACTOR MATCH QUALITY: Are confidence scores reasonable given the data? Are scheduling conflicts correctly identified?
+
+Return a JSON object with:
+- "overall_score": Integer 0-100 representing overall analysis quality
+- "passed": true if overall_score >= 70, false otherwise
+- "issues": Array of objects, each with:
+  - "severity": "error", "warning", or "info"
+  - "step": "bid_extraction", "material_procurement", or "sub_scheduling"
+  - "finding": Clear description of the issue found
+  - "recommendation": Specific suggestion to fix it
+- "summary": 1-2 sentence overall assessment of the analysis quality
+
+Scoring guide:
+- 90-100: Analysis is thorough and well-grounded in the source document
+- 70-89: Generally accurate with minor issues
+- 50-69: Several concerns that should be reviewed by a human
+- Below 50: Significant errors or hallucinations detected
+
+Return ONLY valid JSON. No markdown formatting.""",
+        "variables": ["raw_text", "bid_extraction", "material_procurement", "sub_scheduling"],
+        "model": "llama-4-maverick",
+        "max_tokens": 4096,
         "version": 1,
         "is_default": True,
     },

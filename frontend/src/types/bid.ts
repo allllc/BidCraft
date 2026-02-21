@@ -92,6 +92,7 @@ export interface RequiredTrade {
 export interface BidAnalysis {
   bid_extraction: {
     summary: string;
+    confidence_level?: "low" | "medium" | "high";
     divisions: Division[];
     risk_flags: RiskFlag[];
     gc_questions: GCQuestion[];
@@ -112,6 +113,18 @@ export interface BidAnalysis {
     required_trades: RequiredTrade[];
     matches: SubMatch[];
     schedule_notes: string[];
+  };
+  judge_validation?: {
+    overall_score: number;
+    passed: boolean;
+    issues: Array<{
+      severity: "error" | "warning" | "info";
+      step: string;
+      finding: string;
+      recommendation: string;
+    }>;
+    summary: string;
+    model?: string;
   };
   commodity_snapshot: Array<{
     name: string;

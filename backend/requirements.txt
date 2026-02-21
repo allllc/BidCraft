@@ -10,3 +10,5 @@ fredapi
 feedparser
 pydantic-settings
 pandas
+openai
+google-auth

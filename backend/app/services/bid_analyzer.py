@@ -5,6 +5,7 @@ from datetime import datetime
 from app.services.claude_service import ClaudeService
 from app.services.commodity_service import CommodityService
 from app.services.subcontractor_service import SubcontractorService
+from app.services.vertex_judge_service import VertexJudgeService
 from app.db.firestore_client import get_prompt_template
 
 
@@ -58,6 +59,14 @@ class BidAnalyzer:
                 "parse_error": True,
             }
 
+        # Step 4: Judge Validation (Llama 4 Maverick via Vertex AI)
+        print("[BidAnalyzer] Running judge validation with Llama 4 Maverick...")
+        judge_service = VertexJudgeService()
+        judge_validation = await judge_service.validate(
+            bid_extraction, material_procurement, sub_scheduling, document_text
+        )
+        print(f"[BidAnalyzer] Judge score: {judge_validation.get('overall_score', 'N/A')}, passed: {judge_validation.get('passed', 'N/A')}")
+
         # Strip raw_response from all steps before storing (too large for Firestore)
         for step in [bid_extraction, material_procurement, sub_scheduling]:
             step.pop("raw_response", None)
@@ -66,6 +75,7 @@ class BidAnalyzer:
             "bid_extraction": bid_extraction,
             "material_procurement": material_procurement,
             "sub_scheduling": sub_scheduling,
+            "judge_validation": judge_validation,
             "commodity_snapshot": commodity_data,
             "generated_at": datetime.utcnow().isoformat(),
         }

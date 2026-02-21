@@ -8,10 +8,11 @@ import type { PromptTemplate } from "../types/subcontractor";
 /*  Category color mapping                                            */
 /* ------------------------------------------------------------------ */
 const CATEGORY_COLORS: Record<string, { bg: string; text: string; border: string }> = {
-  scope:    { bg: "bg-indigo-50",  text: "text-indigo-700",  border: "border-indigo-200" },
-  estimate: { bg: "bg-green-50",   text: "text-green-700",   border: "border-green-200" },
-  risk:     { bg: "bg-amber-50",   text: "text-amber-700",   border: "border-amber-200" },
-  market:   { bg: "bg-blue-50",    text: "text-blue-700",    border: "border-blue-200" },
+  scope:      { bg: "bg-indigo-50",  text: "text-indigo-700",  border: "border-indigo-200" },
+  estimate:   { bg: "bg-green-50",   text: "text-green-700",   border: "border-green-200" },
+  risk:       { bg: "bg-amber-50",   text: "text-amber-700",   border: "border-amber-200" },
+  market:     { bg: "bg-blue-50",    text: "text-blue-700",    border: "border-blue-200" },
+  validation: { bg: "bg-purple-50",  text: "text-purple-700",  border: "border-purple-200" },
 };
 
 function categoryColor(category: string) {
@@ -32,6 +33,7 @@ function shortCategory(raw: string): string {
   if (lower.includes("estimate") || lower.includes("material") || lower.includes("procurement")) return "estimate";
   if (lower.includes("risk") || lower.includes("schedule") || lower.includes("sub")) return "risk";
   if (lower.includes("market") || lower.includes("summary")) return "market";
+  if (lower.includes("judge") || lower.includes("validation")) return "validation";
   return raw;
 }
 
@@ -222,13 +224,15 @@ export default function PromptManagementPage() {
           <p className="text-2xl font-bold text-gray-900 mt-1">{stats.lastUpdated}</p>
         </div>
 
-        {/* AI Model */}
+        {/* AI Models */}
         <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <p className="text-sm text-gray-500">AI Model</p>
+          <p className="text-sm text-gray-500">AI Models</p>
           <p className="text-lg font-bold text-gray-900 mt-1 truncate" title={stats.model}>
             {stats.model}
           </p>
-          <p className="text-xs text-gray-400 mt-1">Anthropic</p>
+          <p className="text-xs text-gray-400 mt-1">
+            {[...new Set((prompts || []).map(p => p.model))].join(", ")}
+          </p>
         </div>
       </div>
 
@@ -367,7 +371,10 @@ export default function PromptManagementPage() {
                     undefined
                   )}
                 </span>
-                <span className="font-mono">ID: {prompt.slug}</span>
+                <div className="flex items-center gap-4">
+                  <span className="font-mono">{prompt.model}</span>
+                  <span className="font-mono">ID: {prompt.slug}</span>
+                </div>
               </div>
             </div>
           );
