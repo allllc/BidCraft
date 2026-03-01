@@ -6,7 +6,9 @@ AI-powered bid management platform for commercial general contractors. BidCraft 
 
 ## Demo
 
-See the full demo walkthrough in [`BidCraft Demo.mp4`](BidCraft%20Demo.mp4) and the project presentation in [`Presentation.pptx`](Presentation.pptx).
+[![Watch the demo](https://img.youtube.com/vi/d0XW2vyfaE4/maxresdefault.jpg)](https://youtu.be/d0XW2vyfaE4)
+
+Watch the full demo walkthrough on [YouTube](https://youtu.be/d0XW2vyfaE4). The project presentation is available in [`Presentation.pptx`](Presentation.pptx).
 
 **Live deployment:**
 - Frontend: https://bidcraft-frontend-314181730730.us-central1.run.app
@@ -73,6 +75,8 @@ Steps 2 and 3 run in parallel for faster analysis.
 - Version tracking with reset-to-defaults
 
 ## Architecture
+
+![BidCraft Workflow](Workflow.png)
 
 ```
 Upload (.docx)
