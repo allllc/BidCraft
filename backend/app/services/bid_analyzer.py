@@ -1,3 +1,4 @@
+import asyncio
 import json
 import re
 from datetime import datetime
@@ -33,20 +34,20 @@ class BidAnalyzer:
         scope_summary = bid_extraction.get("summary", "")
         divisions = json.dumps(bid_extraction.get("divisions", []))
 
-        # Step 2: Material Procurement & Scheduling
-        material_procurement = await self._run_material_procurement(
-            scope_summary, commodity_data, commodity_trends, location
-        )
-
-        estimate_summary = json.dumps(material_procurement.get("line_items", [])[:5])
-
-        # Step 3: Subcontractor Scheduling
+        # Steps 2 & 3: Run in parallel (both depend on Step 1 but not on each other)
         sub_data = await self.sub_service.get_all_subcontractors()
         print(f"[BidAnalyzer] Found {len(sub_data)} subcontractors in database")
-        sub_scheduling = await self._run_sub_scheduling(
-            scope_summary, estimate_summary,
-            json.dumps(sub_data),
-            json.dumps(material_procurement.get("timeline", {}))
+        print("[BidAnalyzer] Running Steps 2 & 3 in parallel...")
+
+        material_procurement, sub_scheduling = await asyncio.gather(
+            self._run_material_procurement(
+                scope_summary, commodity_data, commodity_trends, location
+            ),
+            self._run_sub_scheduling(
+                scope_summary, divisions,
+                json.dumps(sub_data),
+                "{}"
+            ),
         )
         print(f"[BidAnalyzer] sub_scheduling keys: {list(sub_scheduling.keys())}")
         if sub_scheduling.get("parse_error"):
@@ -89,7 +90,8 @@ class BidAnalyzer:
             tables_text=tables_text,
             project_type=project_type,
         )
-        raw = self.claude.generate(
+        raw = await asyncio.to_thread(
+            self.claude.generate,
             prompt=prompt,
             max_tokens=template.get("max_tokens", 4096),
         )
@@ -106,7 +108,8 @@ class BidAnalyzer:
             commodity_trends=json.dumps(commodity_trends),
             location=location,
         )
-        raw = self.claude.generate(
+        raw = await asyncio.to_thread(
+            self.claude.generate,
             prompt=prompt,
             max_tokens=template.get("max_tokens", 4096),
         )
@@ -123,7 +126,8 @@ class BidAnalyzer:
             subcontractor_data=subcontractor_data,
             project_timeline=project_timeline,
         )
-        raw = self.claude.generate(
+        raw = await asyncio.to_thread(
+            self.claude.generate,
             prompt=prompt,
             max_tokens=template.get("max_tokens", 4096),
         )
