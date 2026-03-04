@@ -124,6 +124,7 @@ export default function BidDetailPage() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("Scope");
   const [promptPanelOpen, setPromptPanelOpen] = useState(false);
+  const [judgeExpanded, setJudgeExpanded] = useState(false);
   const [inputDataModal, setInputDataModal] = useState<{ variable: string; label: string; data: string } | null>(null);
   const queryClient = useQueryClient();
 
@@ -331,41 +332,53 @@ export default function BidDetailPage() {
         </div>
       )}
 
-      {/* Judge Validation Banner */}
+      {/* LLM-as-a-Judge Banner (collapsible) */}
       {analysis?.judge_validation && (
-        <div className={`rounded-xl border p-4 mb-6 ${
+        <div className={`rounded-xl border mb-6 ${
           analysis.judge_validation.passed ? "bg-green-50 border-green-200" : "bg-amber-50 border-amber-200"
         }`}>
-          <div className="flex items-start justify-between">
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <h4 className="font-semibold text-sm">
-                  Llama 4 Maverick Validation
-                </h4>
-                <span className={`text-xs px-2 py-0.5 rounded font-medium ${
-                  analysis.judge_validation.passed ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
-                }`}>
-                  Score: {analysis.judge_validation.overall_score}/100
+          <button
+            onClick={() => setJudgeExpanded(!judgeExpanded)}
+            className="w-full p-4 flex items-center justify-between text-left"
+          >
+            <div className="flex items-center gap-2">
+              <h4 className="font-semibold text-sm">LLM-as-a-Judge</h4>
+              <span className="text-xs text-gray-500">(Llama 4 Maverick)</span>
+              <span className={`text-xs px-2 py-0.5 rounded font-medium ${
+                analysis.judge_validation.passed ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
+              }`}>
+                Score: {analysis.judge_validation.overall_score}/100
+              </span>
+              {(analysis.judge_validation.issues || []).length > 0 && (
+                <span className="text-xs text-gray-500">
+                  {analysis.judge_validation.issues.length} issue{analysis.judge_validation.issues.length !== 1 ? "s" : ""}
                 </span>
-              </div>
-              <p className="text-sm text-gray-700">{analysis.judge_validation.summary}</p>
+              )}
             </div>
-          </div>
-          {(analysis.judge_validation.issues || []).length > 0 && (
-            <div className="mt-3 space-y-2">
-              {analysis.judge_validation.issues.map((issue: any, i: number) => (
-                <div key={i} className={`flex items-start gap-2 text-sm rounded-lg px-3 py-2 ${
-                  issue.severity === "error" ? "bg-red-100 text-red-800" :
-                  issue.severity === "warning" ? "bg-yellow-100 text-yellow-800" :
-                  "bg-blue-50 text-blue-800"
-                }`}>
-                  <span className="font-medium shrink-0">
-                    {issue.severity === "error" ? "Error" : issue.severity === "warning" ? "Warning" : "Info"}
-                  </span>
-                  <span className="text-xs bg-white/60 px-1.5 py-0.5 rounded shrink-0">{issue.step}</span>
-                  <span>{issue.finding}</span>
+            <svg className={`w-5 h-5 text-gray-400 transition-transform ${judgeExpanded ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          {judgeExpanded && (
+            <div className="px-4 pb-4">
+              <p className="text-sm text-gray-700 mb-3">{analysis.judge_validation.summary}</p>
+              {(analysis.judge_validation.issues || []).length > 0 && (
+                <div className="space-y-2">
+                  {analysis.judge_validation.issues.map((issue: any, i: number) => (
+                    <div key={i} className={`flex items-start gap-2 text-sm rounded-lg px-3 py-2 ${
+                      issue.severity === "error" ? "bg-red-100 text-red-800" :
+                      issue.severity === "warning" ? "bg-yellow-100 text-yellow-800" :
+                      "bg-blue-50 text-blue-800"
+                    }`}>
+                      <span className="font-medium shrink-0">
+                        {issue.severity === "error" ? "Error" : issue.severity === "warning" ? "Warning" : "Info"}
+                      </span>
+                      <span className="text-xs bg-white/60 px-1.5 py-0.5 rounded shrink-0">{issue.step}</span>
+                      <span>{issue.finding}</span>
+                    </div>
+                  ))}
                 </div>
-              ))}
+              )}
             </div>
           )}
         </div>

@@ -53,6 +53,8 @@ async def list_bids():
     bids = []
     for doc in docs:
         data = doc.to_dict()
+        analysis = data.get("analysis") or {}
+        mp = analysis.get("material_procurement") or {}
         bids.append({
             "bid_id": doc.id,
             "project_name": data.get("project_name"),
@@ -62,6 +64,10 @@ async def list_bids():
             "location": data.get("location"),
             "project_type": data.get("project_type"),
             "bid_due_date": data.get("bid_due_date"),
+            "estimated_cost": mp.get("total_estimated_cost"),
+            "confidence_level": (
+                analysis.get("judge_validation", {}).get("overall_score")
+            ),
         })
     return bids
 
